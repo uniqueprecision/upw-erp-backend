@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
    STATIC FRONTEND
 ================================ */
 
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(__dirname));
 
 
 
@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, "../frontend")));
    ROOT
 ================================ */
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/admin.html"));
+  res.sendFile(path.join(__dirname, "admin.html"));
 });
 
 /* ===============================
@@ -1185,6 +1185,7 @@ app.post("/api/qc/reject", async (req, res) => {
 app.get("/health", (req, res) => {
   res.send("UPW ERP Backend Healthy");
 });
+
 
 
 
