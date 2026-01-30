@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 /* ===============================
    STATIC FRONTEND
 ================================ */
-app.use(express.static(path.join(__dirname, "frontend")));
+app.use(express.static(path.join(__dirname, "public")));
 
 /* ===============================
    ROOT
@@ -1178,3 +1178,4 @@ app.post("/api/qc/reject", async (req, res) => {
 
   res.json({ success: true });
 });
+
