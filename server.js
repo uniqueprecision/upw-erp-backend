@@ -11,7 +11,7 @@ const path = require("path");
 const { google } = require("googleapis");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 /* ===============================
    MIDDLEWARE
@@ -24,14 +24,15 @@ app.use(express.urlencoded({ extended: true }));
    STATIC FRONTEND
 ================================ */
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../frontend")));
+
 
 
 /* ===============================
    ROOT
 ================================ */
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "admin.html"));
+  res.sendFile(path.join(__dirname, "../frontend/admin.html"));
 });
 
 /* ===============================
@@ -1184,6 +1185,7 @@ app.post("/api/qc/reject", async (req, res) => {
 app.get("/health", (req, res) => {
   res.send("UPW ERP Backend Healthy");
 });
+
 
 
 
