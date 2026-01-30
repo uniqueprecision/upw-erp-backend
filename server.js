@@ -41,7 +41,7 @@ app.get("/", (req, res) => {
 const SPREADSHEET_ID = "1Ie4iQt-1h1UIynTMuUamn5icM-K0WxZ5KtWwJpOJb0I";
 
 const auth = new google.auth.GoogleAuth({
-  keyFile: path.join(__dirname, "credentials.json"),
+  keyFile: "/etc/secrets/credentials.json",
   scopes: ["https://www.googleapis.com/auth/spreadsheets"],
 });
 
@@ -1185,6 +1185,7 @@ app.post("/api/qc/reject", async (req, res) => {
 app.get("/health", (req, res) => {
   res.send("UPW ERP Backend Healthy");
 });
+
 
 
 
