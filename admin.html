@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>UPW ERP – Admin</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="logo">UPW ERP</div>
+  <div class="top-actions">
+    <span class="profile">Admin</span>
+  </div>
+</div>
+
+<!-- ===== LAYOUT ===== -->
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+    <h4>MASTER</h4>
+    <a class="active" onclick="showPage('dashboard')">Dashboard</a>
+<a onclick="showPage('customers')">Customers</a>
+<a onclick="showPage('enquiries')">Enquiries</a>
+<a onclick="showPage('orders')">Orders</a>
+<a onclick="showPage('production')">Production</a>
+<a onclick="showPage('reports')">Reports</a>
+
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+
+    <!-- ================= DASHBOARD ================= -->
+    <div class="page active" id="page-dashboard">
+
+      <div class="stats">
+        <div class="stat-card blue">
+          <p>Total Orders</p>
+          <h2 id="statTotal">0</h2>
+        </div>
+        <div class="stat-card amber">
+          <p>Assigned</p>
+          <h2 id="statAssigned">0</h2>
+        </div>
+        <div class="stat-card green">
+          <p>In Progress</p>
+          <h2 id="statProgress">0</h2>
+        </div>
+        <div class="stat-card red">
+          <p>On Hold</p>
+          <h2 id="statHold">0</h2>
+        </div>
+        <div class="stat-card gray">
+          <p>Completed</p>
+          <h2 id="statDone">0</h2>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Machine-wise Load</h3>
+        <canvas id="machineChart" height="90"></canvas>
+      </div>
+
+      <div class="card">
+        <h3>Live Production Status</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Job</th>
+              <th>Customer</th>
+              <th>Designer</th>
+              <th>Machine</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="liveTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <div class="card">
+  <h3>Operator Performance</h3>
+
+  <div class="form-row">
+    <select id="opName">
+      <option>Ramesh</option>
+      <option>Suresh</option>
+      <option>Mahesh</option>
+    </select>
+
+    <select id="opMonth">
+      <option value="">This Month</option>
+      <option value="1">Jan</option>
+      <option value="2">Feb</option>
+      <option value="3">Mar</option>
+    </select>
+
+    <button onclick="loadOperatorPerformance()">View</button>
+  </div>
+
+  <table>
+    <tr><td>Jobs Done</td><td id="opJobs">-</td></tr>
+    <tr><td>Work Hours</td><td id="opWork">-</td></tr>
+    <tr><td>Hold Hours</td><td id="opHold">-</td></tr>
+    <tr><td>Efficiency %</td><td id="opEff">-</td></tr>
+  </table>
+</div>
+
+
+    <!-- ===== ADMIN LIVE DASHBOARD ===== -->
+<div class="card">
+  <h3>Live Job Status</h3>
+
+  <!-- KPI ROW -->
+  <div class="stats">
+    <div class="stat-card blue">
+      <p>Total Jobs</p>
+      <h2 id="kpiTotal">0</h2>
+    </div>
+    <div class="stat-card amber">
+      <p>In Design</p>
+      <h2 id="kpiDesign">0</h2>
+    </div>
+    <div class="stat-card green">
+      <p>In Production</p>
+      <h2 id="kpiProduction">0</h2>
+    </div>
+    <div class="stat-card red">
+      <p>On Hold</p>
+      <h2 id="kpiHold">0</h2>
+    </div>
+    <div class="stat-card gray">
+      <p>Completed</p>
+      <h2 id="kpiCompleted">0</h2>
+    </div>
+  </div>
+
+  <!-- LIVE TABLE -->
+  <table>
+    <thead>
+      <tr>
+        <th>Job ID</th>
+        <th>Customer</th>
+        <th>Part</th>
+        <th>Designer</th>
+        <th>Status</th>
+        <th>Last Update</th>
+      </tr>
+    </thead>
+    <tbody id="adminLiveTable"></tbody>
+  </table>
+</div>
+
+    
+
+    <!-- ================= CUSTOMERS ================= -->
+    <div class="page" id="page-customers">
+
+      <div class="card">
+        <h3>Customer Master</h3>
+
+        <h4>Basic Information</h4>
+        <div class="form-row">
+          <input id="custName" placeholder="Customer Name">
+          <input id="companyName" placeholder="Company Name">
+          <input id="contactPerson" placeholder="Contact Person">
+        </div>
+
+        <div class="form-row">
+          <input id="custPhone" placeholder="Mobile Number">
+          <input id="altPhone" placeholder="Alternate Mobile">
+          <input id="custEmail" placeholder="Email ID">
+        </div>
+
+        <h4>Company Details</h4>
+        <div class="form-row">
+          <input id="industry" placeholder="Industry Type">
+          <input id="address" placeholder="Address">
+          <input id="city" placeholder="City">
+        </div>
+
+        <div class="form-row">
+          <input id="state" placeholder="State">
+          <input id="pincode" placeholder="Pincode">
+          <input id="country" placeholder="Country">
+        </div>
+
+        <h4>Commercial Details</h4>
+        <div class="form-row">
+          <input id="gst" placeholder="GST Number">
+          <input id="pan" placeholder="PAN Number">
+          <select id="paymentTerms">
+            <option value="">Payment Terms</option>
+            <option>Advance</option>
+            <option>15 Days</option>
+            <option>30 Days</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <input id="creditLimit" placeholder="Credit Limit (₹)">
+          <select id="customerStatus">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <select id="source">
+            <option value="">Source</option>
+            <option>Reference</option>
+            <option>Exhibition</option>
+            <option>Cold Call</option>
+            <option>Website</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <input id="salesPerson" placeholder="Assigned Sales Person">
+          <input id="notes" placeholder="Notes / Remarks">
+        </div>
+
+        <button onclick="addCustomer()">Save Customer</button>
+        <p id="custMsg"></p>
+      </div>
+
+      <div class="card">
+        <h3>Customer List</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Company</th>
+              <th>Mobile</th>
+              <th>Email</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="customerTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ================= ENQUIRY MASTER ================= -->
+<div class="page" id="page-enquiries">
+
+  <h3>New Enquiry</h3>
+
+  <!-- ================= ENQUIRY LIST ================= -->
+<div class="card">
+  <h3>Enquiry List</h3>
+  <table>
+    <thead>
+      <tr>
+  <th>Enquiry ID</th>
+  <th>Customer</th>
+  <th>Part</th>
+  <th>Status</th>
+  <th>Action</th>
+</tr>
+
+    </thead>
+    <tbody id="enquiryTable"></tbody>
+  </table>
+</div>
+
+<thead>
+  <tr>
+    <th>Enquiry ID</th>
+    <th>Customer</th>
+    <th>Part</th>
+    <th>Status</th>
+    <th>Action</th>
+  </tr>
+</thead>
+<div class="card enquiry-list-card">
+</div>
+
+
+
+
+  <!-- ENQUIRY HEADER -->
+  <h4>Enquiry Header</h4>
+  <div class="form-row">
+    <select id="enqCustomer"></select>
+    <select id="enqPriority">
+      <option value="Normal">Normal</option>
+      <option value="High">High</option>
+    </select>
+  </div>
+
+  <!-- TECHNICAL DETAILS -->
+  <h4>Technical Details</h4>
+  <div class="form-row">
+    <input id="partName" placeholder="Part Name / Description">
+    <input id="quantity" placeholder="Quantity">
+    <select id="material">
+      <option value="">Material</option>
+      <option>MS</option>
+      <option>EN8</option>
+      <option>SS</option>
+      <option>Aluminium</option>
+    </select>
+  </div>
+
+  <div class="form-row">
+    <select id="drawing">
+      <option value="No">Drawing Available?</option>
+      <option>Yes</option>
+      <option>No</option>
+    </select>
+
+    <select id="process">
+      <option value="">Process Type</option>
+      <option>Machining</option>
+      <option>Fabrication</option>
+    </select>
+
+    <input id="tolerance" placeholder="Tolerance (if any)">
+  </div>
+
+  <div class="form-row">
+    <input id="surface" placeholder="Surface Finish (Ra)">
+    <input id="delivery" placeholder="Delivery Expectation">
+  </div>
+
+  <button onclick="addEnquiry()">Save Enquiry</button>
+</div>
+
+
+    <!-- ================= ORDERS ================= -->
+    <div class="page" id="page-orders">
+
+      <div class="card">
+        <h3>Orders</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Requirement</th>
+              <th>Designer</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTable"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
+
+<!-- ================= DESIGN SCREEN ================= -->
+<div class="page" id="page-design">
+
+  <div class="card">
+    <h3>Design Finalization</h3>
+    <small>Complete design details before generating QR</small>
+  </div>
+
+  <div class="card enquiry-form-card">
+    <h4>Design Details</h4>
+
+    <div class="form-row">
+      <input id="designJobId" placeholder="Job ID" readonly>
+      <input id="designOrderId" placeholder="Order ID" readonly>
+    </div>
+
+    <div class="form-row">
+      <input id="designCustomer" placeholder="Customer Name" readonly>
+      <input id="designPart" placeholder="Part / Requirement" readonly>
+    </div>
+
+    <div class="form-row">
+      <input id="designNo" placeholder="Design Number">
+      <input id="drawingNo" placeholder="Drawing Number">
+    </div>
+
+    <div class="form-row">
+      <select id="designMaterial">
+        <option value="">Material</option>
+        <option>MS</option>
+        <option>EN8</option>
+        <option>SS</option>
+        <option>Aluminium</option>
+      </select>
+
+      <select id="designRevision">
+        <option value="R0">Revision R0</option>
+        <option value="R1">Revision R1</option>
+        <option value="R2">Revision R2</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <input id="designNotes" placeholder="Design Notes / Special Instructions">
+    </div>
+
+    <button onclick="finalizeDesignUI()">
+      Finalize Design & Generate QR
+    </button>
+
+  </div>
+
+</div>

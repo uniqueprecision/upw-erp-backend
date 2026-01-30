@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>UPW ERP – Operator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="logo">UPW ERP – Operator</div>
+</div>
+
+<div class="main">
+
+  <!-- JOB INFO -->
+  <div class="card">
+    <h3>Job Details</h3>
+
+    <div class="form-row">
+      <input id="jobId" placeholder="Job ID" readonly>
+      <input id="orderId" placeholder="Order ID" readonly>
+    </div>
+
+    <div class="form-row">
+      <input id="customer" placeholder="Customer" readonly>
+      <input id="requirement" placeholder="Requirement" readonly>
+    </div>
+  </div>
+
+  <!-- ===== DESIGN PREVIEW (READ ONLY) ===== -->
+<div class="card" id="designPreviewCard" style="display:none">
+
+  <h3>📐 Design Preview (Read Only)</h3>
+
+  <p><b>Design No:</b> <span id="dpDesignNo"></span></p>
+  <p><b>Designer:</b> <span id="dpDesigner"></span></p>
+
+  <iframe
+    id="designFrame"
+    style="width:100%; height:420px; border:1px solid #ddd;"
+    sandbox>
+  </iframe>
+
+  <small style="color:red">
+    ⛔ Download / Save disabled
+  </small>
+
+</div>
+
+
+  <!-- OPERATOR SELECTION -->
+  <div class="card">
+    <h3>Operator Details</h3>
+
+    <div class="form-row">
+      <select id="operatorName">
+        <option value="">Select Operator</option>
+        <option>Operator 1</option>
+        <option>Operator 2</option>
+        <option>Operator 3</option>
+        <option>Operator 4</option>
+        <option>Operator 5</option>
+        <option>Operator 6</option>
+        <option>Operator 7</option>
+      </select>
+
+      <select id="machineName">
+        <option value="">Select Machine</option>
+        <option>VMC-1</option>
+        <option>VMC-2</option>
+        <option>CNC-1</option>
+        <option>LATHE-1</option>
+      </select>
+    </div>
+
+    <h3 id="liveTimer" style="color:#1f5fa6">0m 0s</h3>
+
+    <button onclick="startJob()">▶ START JOB</button>
+    <p id="msg"></p>
+    <!-- ===== ACTIVE JOB ACTIONS ===== -->
+<div id="activeActions" style="display:none; margin-top:16px;">
+
+  <button class="btn-hold" onclick="holdJob(jobId.value)">
+    ⏸ HOLD JOB
+  </button>
+
+  <button class="btn-complete" onclick="completeJob(jobId.value)">
+    ✅ COMPLETE JOB
+  </button>
+
+</div>
+
+  </div>
+
+</div>
+
+<script src="operator.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+
+<head>
+  <meta charset="UTF-8" />
+  <title>UPW ERP – Designer</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+</head>
+
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="logo">UPW ERP – Designer</div>
+  <div class="profile">Designer</div>
+</div>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+    <h4>DESIGNER</h4>
+    <a class="active" onclick="showDesignerPage('dashboard')">Assigned Orders</a>
+  </div>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+
+    <!-- ================= DASHBOARD ================= -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- KPI CARDS -->
+      <div class="stats">
+        <div class="stat-card blue">
+          <p>Assigned Orders</p>
+          <h2 id="kpiAssigned">0</h2>
+        </div>
+
+        <div class="stat-card amber">
+          <p>Design In Progress</p>
+          <h2 id="kpiInProgress">0</h2>
+        </div>
+
+        <div class="stat-card green">
+          <p>Design Completed</p>
+          <h2 id="kpiCompleted">0</h2>
+        </div>
+
+        <div class="stat-card gray">
+          <p>Sent to Production</p>
+          <h2 id="kpiProduction">0</h2>
+        </div>
+      </div>
+
+      <!-- ASSIGNED ORDERS TABLE -->
+      <div class="card">
+        <h3>Assigned Orders</h3>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Requirement</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="designerOrders"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ================= DESIGN WORKSPACE ================= -->
+    <div class="page" id="page-design">
+
+      <div class="card">
+        <h3>Design Workspace</h3>
+
+        <div class="form-row">
+          <input id="wsOrderId" placeholder="Order ID" readonly>
+          <input id="wsCustomer" placeholder="Customer" readonly>
+        </div>
+
+        <div class="form-row">
+          <input id="wsRequirement" placeholder="Requirement" readonly>
+          <input id="wsDesignNo" placeholder="Design No" readonly>
+        </div>
+
+        <div class="form-row">
+          <input id="wsDesignerName" placeholder="Designer Name">
+          <input id="wsDesignDate" type="date">
+        </div>
+
+        <div class="form-row">
+          <input id="wsRemarks" placeholder="Design Remarks / Notes">
+        </div>
+      <!-- ===== QR PREVIEW ===== -->
+<div class="card" style="margin-top:16px">
+  <h4>Job QR Code</h4>
+
+  <div id="qrBox" style="text-align:center; padding:12px">
+    <canvas id="qrCanvas"></canvas>
+    <p id="qrText" style="font-size:12px; margin-top:8px; color:#555"></p>
+  </div>
+
+  <button onclick="generateQR()">Generate QR</button>
+</div>
+
+        <button onclick="completeDesign()">Design Completed</button>
+      </div>
+
+    </div>
+
+    <!-- ===== QR PREVIEW ===== -->
+<div class="card" id="qrSection" style="display:none; margin-top:20px;">
+  <h3>Job QR Code</h3>
+
+  <p><b>Job ID:</b> <span id="qrJobId"></span></p>
+
+  <div id="qrBox" style="margin:15px 0;"></div>
+<p id="jobIdText" style="font-weight:600;"></p>
+
+
+  <button onclick="confirmSendToProduction()">
+    Confirm & Send to Production
+  </button>
+</div>
+
+
+    <!-- ================= PRODUCTION ================= -->
+    <div class="page" id="page-production">
+      <div class="card">
+        <h3>Sent to Production</h3>
+        <p>Job created successfully.</p>
+        <p>QR & machine assignment next step.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+
+<script src="designer.js"></script>
+</body>
+</html>
