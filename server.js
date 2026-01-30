@@ -23,7 +23,10 @@ app.use(express.urlencoded({ extended: true }));
 /* ===============================
    STATIC FRONTEND
 ================================ */
+const path = require("path");
+
 app.use(express.static(path.join(__dirname, "public")));
+
 
 /* ===============================
    ROOT
@@ -1178,4 +1181,10 @@ app.post("/api/qc/reject", async (req, res) => {
 
   res.json({ success: true });
 });
+
+app.get("/health", (req, res) => {
+  res.send("UPW ERP Backend Healthy");
+});
+
+
 
