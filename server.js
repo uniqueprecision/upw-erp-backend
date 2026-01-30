@@ -23,7 +23,6 @@ app.use(express.urlencoded({ extended: true }));
 /* ===============================
    STATIC FRONTEND
 ================================ */
-const path = require("path");
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -1185,6 +1184,7 @@ app.post("/api/qc/reject", async (req, res) => {
 app.get("/health", (req, res) => {
   res.send("UPW ERP Backend Healthy");
 });
+
 
 
 
