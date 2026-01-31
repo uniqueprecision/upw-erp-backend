@@ -332,20 +332,26 @@ app.post("/api/production/start", async (req, res) => {
    JOBS – DESIGNER
 ====================================================== */
 app.post("/api/jobs/create", async (req, res) => {
-  const { orderId, customer, requirement } = req.body;
+  const { jobId, orderId, customer, requirement } = req.body;
   const sh = await getSheets();
-
-  const jobId = "JOB-" + Date.now();
 
   await sh.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
     range: "Jobs!A:F",
     valueInputOption: "USER_ENTERED",
     requestBody: {
-      values: [[jobId, orderId, customer, requirement, "CREATED", new Date().toLocaleString()]]
+      values: [[
+        jobId,
+        orderId,
+        customer,
+        requirement,
+        "CREATED",
+        new Date().toLocaleString()
+      ]]
     }
   });
 
+  // lock order
   const orders = await sh.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: "Orders!A:E",
@@ -362,8 +368,9 @@ app.post("/api/jobs/create", async (req, res) => {
     requestBody: { values: rows }
   });
 
-  res.json({ success: true, jobId });
+  res.json({ success: true });
 });
+
 
 /* ======================================================
    DASHBOARD LIVE
@@ -1185,6 +1192,7 @@ app.post("/api/qc/reject", async (req, res) => {
 app.get("/health", (req, res) => {
   res.send("UPW ERP Backend Healthy");
 });
+
 
 
 
