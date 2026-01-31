@@ -90,11 +90,11 @@ function generateQR() {
 
   activeJobId = "JOB-" + Date.now();
 
-  new QRious({
-    element: document.getElementById("qrCanvas"),
-    size: 220,
-    value: `https://utriculate-elma-matronly.ngrok-free.dev/operator.html?jobId=${activeJobId}`
-  });
+ new QRious({
+  element: document.getElementById("qrCanvas"),
+  size: 220,
+  value: `https://upw-erp-backend.onrender.com/operator.html?jobId=${activeJobId}`
+});
 
   qrText.innerText = "Job ID: " + activeJobId;
 }
@@ -147,3 +147,4 @@ document.addEventListener("DOMContentLoaded", () => {
   showDesignerPage("dashboard");
   loadDesignerDashboard();
 });
+
