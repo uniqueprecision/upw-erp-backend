@@ -9,15 +9,31 @@ async function loadSupervisor() {
   const res = await fetch("/api/supervisor/dashboard");
   const d = await res.json();
 
-  // KPI
-  document.getElementById("kRun").innerText = d.kpi.running;
-  document.getElementById("kHold").innerText = d.kpi.hold;
-  document.getElementById("kDone").innerText = d.kpi.completed;
-  document.getElementById("kOp").innerText = d.kpi.operators;
+  // ================= KPI =================
+  document.getElementById("kRun").innerText = d.kpi.running ?? 0;
+  document.getElementById("kHold").innerText = d.kpi.hold ?? 0;
+  document.getElementById("kDone").innerText = d.kpi.completed ?? 0;
+  document.getElementById("kOp").innerText = d.kpi.operators ?? 0;
 
-  // LIVE PRODUCTION TABLE
+  document.getElementById("kShiftRun").innerText = d.kpi.shiftRunning ?? 0;
+  document.getElementById("kShiftHold").innerText = d.kpi.shiftHold ?? 0;
+  document.getElementById("kShiftDone").innerText = d.kpi.shiftCompleted ?? 0;
+  document.getElementById("kIdle").innerText = d.kpi.idleMachines ?? 0;
+  document.getElementById("kAvgCycle").innerText = d.kpi.avgCycle ?? 0;
+
+  // ================= LIVE PRODUCTION =================
   const t = document.getElementById("prodTable");
   t.innerHTML = "";
+
+  if (!d.jobs || d.jobs.length === 0) {
+    const r = t.insertRow();
+    r.innerHTML = `
+      <td colspan="6" style="text-align:center;color:#888">
+        No live production jobs
+      </td>
+    `;
+    return;
+  }
 
   d.jobs.forEach(j => {
     const r = t.insertRow();
@@ -25,12 +41,17 @@ async function loadSupervisor() {
       <td>${j.jobId}</td>
       <td>${j.operator}</td>
       <td>${j.machine}</td>
-      <td>${j.status}</td>
+      <td>
+        <span class="status ${j.status.toLowerCase()}">
+          ${j.status}
+        </span>
+      </td>
       <td>${j.startTime || "-"}</td>
       <td>${j.holdReason || "-"}</td>
     `;
   });
 }
+
 
 /* ===============================
    QC PENDING SECTION (IMPORTANT)
@@ -131,9 +152,39 @@ async function qcReject() {
 ================================ */
 setInterval(() => {
   loadSupervisor();
+  loadMachineLoad();
   loadQC();
 }, 5000);
+
 
 // FIRST LOAD
 loadSupervisor();
 loadQC();
+
+async function loadMachineLoad() {
+  const res = await fetch("/api/supervisor/dashboard");
+  const d = await res.json();
+
+  const t = document.getElementById("machineLoadTable");
+  t.innerHTML = "";
+
+  if (!d.machineLoad || d.machineLoad.length === 0) {
+    const r = t.insertRow();
+    r.innerHTML = `
+      <td colspan="4" style="text-align:center;color:#888">
+        No machine data
+      </td>
+    `;
+    return;
+  }
+
+  d.machineLoad.forEach(m => {
+    const r = t.insertRow();
+    r.innerHTML = `
+      <td>${m.machine}</td>
+      <td>${m.status}</td>
+      <td>${m.runningJobs}</td>
+      <td>${m.load}%</td>
+    `;
+  });
+}
