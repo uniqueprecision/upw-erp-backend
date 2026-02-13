@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-
-
 <head>
   <meta charset="UTF-8" />
   <title>UPW ERP – Designer</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
 </head>
 
 <body>
@@ -25,7 +21,9 @@
   <!-- ===== SIDEBAR ===== -->
   <div class="sidebar">
     <h4>DESIGNER</h4>
-    <a class="active" onclick="showDesignerPage('dashboard')">Assigned Orders</a>
+    <a class="active" onclick="showDesignerPage('dashboard')">
+      Assigned Orders
+    </a>
   </div>
 
   <!-- ===== MAIN ===== -->
@@ -34,33 +32,29 @@
     <!-- ================= DASHBOARD ================= -->
     <div class="page active" id="page-dashboard">
 
-      <!-- KPI CARDS -->
+      <!-- KPI -->
       <div class="stats">
         <div class="stat-card blue">
-          <p>Assigned Orders</p>
+          <p>Assigned</p>
           <h2 id="kpiAssigned">0</h2>
         </div>
-
         <div class="stat-card amber">
-          <p>Design In Progress</p>
+          <p>In Progress</p>
           <h2 id="kpiInProgress">0</h2>
         </div>
-
         <div class="stat-card green">
-          <p>Design Completed</p>
+          <p>Completed</p>
           <h2 id="kpiCompleted">0</h2>
         </div>
-
         <div class="stat-card gray">
           <p>Sent to Production</p>
           <h2 id="kpiProduction">0</h2>
         </div>
       </div>
 
-      <!-- ASSIGNED ORDERS TABLE -->
+      <!-- TABLE -->
       <div class="card">
         <h3>Assigned Orders</h3>
-
         <table>
           <thead>
             <tr>
@@ -81,71 +75,98 @@
     <div class="page" id="page-design">
 
       <div class="card">
-        <h3>Design Workspace</h3>
+        <h3 class="section-title">Design Workspace</h3>
+
 
         <div class="form-row">
-          <input id="wsOrderId" placeholder="Order ID" readonly>
-          <input id="wsCustomer" placeholder="Customer" readonly>
+          <input id="wsOrderId" readonly placeholder="Order ID">
+          <input id="wsCustomer" readonly placeholder="Customer">
         </div>
 
         <div class="form-row">
-          <input id="wsRequirement" placeholder="Requirement" readonly>
-          <input id="wsDesignNo" placeholder="Design No" readonly>
+          <input id="wsRequirement" readonly placeholder="Requirement">
+          <input id="wsDesignNo" readonly placeholder="Design No">
         </div>
 
         <div class="form-row">
-          <input id="wsDesignerName" placeholder="Designer Name">
+          <input id="wsDesignerName" placeholder="Designer Name" required>
           <input id="wsDesignDate" type="date">
         </div>
 
         <div class="form-row">
-          <input id="wsRemarks" placeholder="Design Remarks / Notes">
+          <input id="wsRemarks" placeholder="Design Notes">
         </div>
-      <!-- ===== QR PREVIEW ===== -->
-<div class="card" style="margin-top:16px">
+
+        <!-- ===== EXTRA DESIGN DETAILS ===== -->
+<div class="form-row">
+  <select id="wsDesignType">
+    <option value="NEW">New Design</option>
+    <option value="REWORK">Rework</option>
+  </select>
+
+  <input id="wsMaterial" placeholder="Material Used">
+</div>
+
+<div class="machine-box">
+  <label class="machine-pill">
+    <input type="checkbox" class="machineChk" value="VMC">
+    <span>VMC</span>
+  </label>
+
+  <label class="machine-pill">
+    <input type="checkbox" class="machineChk" value="CNC">
+    <span>CNC</span>
+  </label>
+
+  <label class="machine-pill">
+    <input type="checkbox" class="machineChk" value="LATHE">
+    <span>LATHE</span>
+  </label>
+
+  <label class="machine-pill">
+    <input type="checkbox" class="machineChk" value="GRINDING">
+    <span>GRINDING</span>
+  </label>
+</div>
+<div style="height: 16px;"></div>
+
+<div class="form-row">
+  <textarea id="wsOperatorRemark"
+    placeholder="Operator Instructions"></textarea>
+</div>
+
+        <div class="qr-section">
   <h4>Job QR Code</h4>
 
-  <div id="qrBox" style="text-align:center; padding:12px">
+  <div class="qr-box">
     <canvas id="qrCanvas"></canvas>
-    <p id="qrText" style="font-size:12px; margin-top:8px; color:#555"></p>
+    <p id="qrText"></p>
   </div>
 
-  <button onclick="generateQR()">Generate QR</button>
-</div>
+ <button id="btnQR" onclick="generateQR()">
+  Generate QR
+</button>
 
-        <button onclick="completeDesign()">Design Completed</button>
-      </div>
-
-    </div>
-
-    <!-- ===== QR PREVIEW ===== -->
-<div class="card" id="qrSection" style="display:none; margin-top:20px;">
-  <h3>Job QR Code</h3>
-
-  <p><b>Job ID:</b> <span id="qrJobId"></span></p>
-
-  <div id="qrBox" style="margin:15px 0;"></div>
-<p id="jobIdText" style="font-weight:600;"></p>
+<button id="btnComplete" onclick="completeDesign()">
+  Design Completed & Create Job
+</button>
 
 
-  <button onclick="confirmSendToProduction()">
-    Confirm & Send to Production
-  </button>
 </div>
 
 
-    <!-- ================= PRODUCTION ================= -->
+
+    <!-- ================= PRODUCTION CONFIRM ================= -->
     <div class="page" id="page-production">
       <div class="card">
-        <h3>Sent to Production</h3>
-        <p>Job created successfully.</p>
-        <p>QR & machine assignment next step.</p>
+        <h3>Design Completed</h3>
+        <p>Job created and sent to production.</p>
+        <p>QR will be used by Operator.</p>
       </div>
     </div>
 
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
 
 <script src="designer.js"></script>
 </body>
