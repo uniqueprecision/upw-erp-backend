@@ -1,6 +1,13 @@
+// =========================
+// CHART INSTANCES (GLOBAL)
+// =========================
+let statusPieChart = null;
+let machineBarChart = null;
+
+
+
 /* =====================================================
-   UPW ERP – FINAL ADMIN LOGIC (LOCKED VERSION)
-   Customers → Enquiries → Orders
+   UPW ERP – FINAL ADMIN LOGIC (STABLE)
 ===================================================== */
 
 /* =========================
@@ -13,54 +20,50 @@ const ordersTable = document.getElementById("ordersTable");
 const custMsg = document.getElementById("custMsg");
 
 /* =========================
-   PAGE NAVIGATION (STABLE)
+   PAGE NAVIGATION
 ========================= */
 function showPage(page) {
-  // hide all pages
   document.querySelectorAll(".page").forEach(p => {
+    p.style.display = "none";
     p.classList.remove("active");
-    if (page === "enquiries") {
-  loadCustomers();
-}
-
   });
 
-  // show selected page
-  const current = document.getElementById("page-" + page);
-  if (current) current.classList.add("active");
+  const el = document.getElementById("page-" + page);
+  if (!el) return;
 
-  // 🔥 IMPORTANT PAGE-BASED LOADS
+  el.style.display = "block";
+  el.classList.add("active");
+
+  if (page === "dashboard") loadDashboardKPI();
   if (page === "customers") {
+    loadCustomerKPI();
     loadCustomers();
   }
-
   if (page === "enquiries") {
-    loadCustomers();   // ⭐ CUSTOMER DROPDOWN FIX
+    loadEnquiryKPI();
+    loadCustomers();
     loadEnquiries();
   }
-
   if (page === "orders") {
+    loadOrderKPI();
     loadOrders();
   }
-
-  // sidebar active
-  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
-  if (window.event?.target) window.event.target.classList.add("active");
 }
 
-
 /* =========================
-   LOAD CUSTOMERS
+   CUSTOMERS
 ========================= */
 async function loadCustomers() {
+  if (!customerTable) return;
+
   customerTable.innerHTML = "";
-  customerSelect.innerHTML = `<option value="">Select Customer</option>`;
+  if (customerSelect)
+    customerSelect.innerHTML = `<option value="">Select Customer</option>`;
 
   const res = await fetch("/api/customers/list");
   const customers = await res.json();
 
   customers.forEach(c => {
-    /* TABLE */
     const row = customerTable.insertRow();
     row.innerHTML = `
       <td>${c.id}</td>
@@ -71,17 +74,15 @@ async function loadCustomers() {
       <td>${c.status || "Active"}</td>
     `;
 
-    /* DROPDOWN */
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.customerName;
-    customerSelect.appendChild(opt);
+    if (customerSelect) {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.customerName;
+      customerSelect.appendChild(opt);
+    }
   });
 }
 
-/* =========================
-   ADD CUSTOMER
-========================= */
 async function addCustomer() {
   const payload = {
     customerName: custName.value.trim(),
@@ -122,9 +123,11 @@ async function addCustomer() {
   if (result.success) {
     custMsg.innerText = "Customer saved successfully ✓";
     custMsg.style.color = "green";
-    document.querySelectorAll("#page-customers input, #page-customers select")
-      .forEach(i => i.value = "");
+    document
+      .querySelectorAll("#page-customers input, #page-customers select")
+      .forEach(i => (i.value = ""));
     loadCustomers();
+    loadCustomerKPI();
   } else {
     custMsg.innerText = "Error saving customer";
     custMsg.style.color = "red";
@@ -132,7 +135,7 @@ async function addCustomer() {
 }
 
 /* =========================
-   ADD ENQUIRY
+   ENQUIRIES
 ========================= */
 async function addEnquiry() {
   const payload = {
@@ -144,8 +147,6 @@ async function addEnquiry() {
     material: material.value,
     drawing: drawing.value,
     process: process.value,
-    tolerance: tolerance.value.trim(),
-    surface: surface.value.trim(),
     delivery: delivery.value.trim()
   };
 
@@ -163,15 +164,11 @@ async function addEnquiry() {
   const result = await res.json();
   if (result.success) {
     alert("Enquiry saved");
-    document.querySelectorAll("#page-enquiries input, #page-enquiries select")
-      .forEach(i => i.value = "");
     loadEnquiries();
+    loadEnquiryKPI();
   }
 }
 
-/* =========================
-   LOAD ENQUIRIES (WITH CONVERT)
-========================= */
 async function loadEnquiries() {
   enquiryTable.innerHTML = "";
 
@@ -181,66 +178,49 @@ async function loadEnquiries() {
   enquiries.forEach(e => {
     const row = enquiryTable.insertRow();
 
-    let actionHTML = "";
-
-    /* =========================
-       STEP 3B LOGIC
-    ========================== */
+    let action = "-";
     if (e.status === "NEW") {
-  actionHTML = `
-    <button 
-      class="convert-btn"
-      data-enquiry="${e.id}"
-      data-customer="${e.customerName}"
-      data-req="${e.requirement}">
-      Convert → Order
-    </button>
-
-    <button 
-      class="lost-btn"
-      data-enquiry="${e.id}">
-      Mark Lost
-    </button>
-  
+      action = `
+        <button class="convert-btn"
+          data-enquiry="${e.id}"
+          data-customer="${e.customerName}"
+          data-req="${e.requirement || ""}">
+          Convert → Order
+        </button>
+        <button class="lost-btn"
+          data-enquiry="${e.id}">
+          Mark Lost
+        </button>
       `;
-    } else if (e.status === "CONVERTED") {
-      actionHTML = `<span style="color:green;font-weight:600;">Converted</span>`;
-    } else if (e.status === "LOST") {
-      actionHTML = `<span style="color:red;font-weight:600;">Lost</span>`;
+    } else {
+      action = e.status;
     }
 
     row.innerHTML = `
       <td>${e.id}</td>
       <td>${e.customerName}</td>
       <td>${e.requirement || "-"}</td>
-      <td>${actionHTML}</td>
-    
+      <td>${action}</td>
     `;
   });
 }
 
 /* =========================
-   CONVERT ENQUIRY → ORDER
+   CLICK HANDLERS
 ========================= */
-document.addEventListener("click", async (e) => {
-
-  /* ===== CONVERT TO ORDER ===== */
+document.addEventListener("click", async e => {
+  // Convert enquiry
   if (e.target.classList.contains("convert-btn")) {
-    const enqId = e.target.dataset.enqid;
-    const customerName = e.target.dataset.customer;
-    const requirement = e.target.dataset.req;
+    const enquiryId = e.target.dataset.enquiry;
 
-    // 1️⃣ Create Order
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-  enquiryId: e.target.dataset.enquiry,
-  customerName: e.target.dataset.customer,
-  requirement: e.target.dataset.req
-
-})
-
+        enquiryId,
+        customerName: e.target.dataset.customer,
+        requirement: e.target.dataset.req
+      })
     });
 
     const result = await res.json();
@@ -249,72 +229,36 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    document.addEventListener("click", async (e) => {
-  if (!e.target.classList.contains("lost-btn")) return;
-
-  const enquiryId = e.target.dataset.enquiry;
-
-  const reason = prompt("Reason for marking enquiry as LOST?");
-  if (!reason) return;
-
-  const res = await fetch("/api/enquiries/lost", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      enquiryId,
-      reason
-    })
-  });
-
-  const result = await res.json();
-
-  if (result.success) {
-    alert("❌ Enquiry marked as LOST");
-    loadEnquiries();   // refresh enquiry list
-  } else {
-    alert("Failed to mark enquiry as lost");
-  }
-});
-
-
-    // 2️⃣ Update Enquiry Status
     await fetch("/api/enquiries/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        enquiryId: enqId,
-        status: "CONVERTED"
-      })
+      body: JSON.stringify({ enquiryId, status: "CONVERTED" })
     });
-
-    alert("✅ Enquiry converted to Order");
 
     loadEnquiries();
     loadOrders();
+    loadEnquiryKPI();
+    loadOrderKPI();
     showPage("orders");
   }
 
-  /* ===== MARK LOST ===== */
+  // Mark lost
   if (e.target.classList.contains("lost-btn")) {
-    const enqId = e.target.dataset.enqid;
+    const enquiryId = e.target.dataset.enquiry;
 
     await fetch("/api/enquiries/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        enquiryId: enqId,
-        status: "LOST"
-      })
+      body: JSON.stringify({ enquiryId, status: "LOST" })
     });
 
-    alert("❌ Enquiry marked as Lost");
     loadEnquiries();
+    loadEnquiryKPI();
   }
-
 });
 
 /* =========================
-   LOAD ORDERS
+   ORDERS
 ========================= */
 async function loadOrders() {
   ordersTable.innerHTML = "";
@@ -324,36 +268,27 @@ async function loadOrders() {
 
   orders.forEach(o => {
     const row = ordersTable.insertRow();
+
     row.innerHTML = `
       <td>${o.orderId}</td>
       <td>${o.customerName}</td>
       <td>${o.requirement}</td>
       <td>
-        ${o.status === "ASSIGNED" ? `
-  <span style="font-weight:600">${o.designer}</span>
-` : `
-  <select onchange="assignDesigner('${o.orderId}', this.value)">
-    <option value="">Assign</option>
-    <option>Rahul</option>
-    <option>Amit</option>
-    <option>Suresh</option>
-  </select>
-`}
-
+        ${
+          o.status === "CREATED"
+            ? `<select onchange="assignDesigner('${o.orderId}', this.value)">
+                <option value="">Assign</option>
+                <option>Rahul</option>
+                <option>Suresh</option>
+              </select>`
+            : o.designer || "-"
+        }
       </td>
-      <td>
-  <span class="status-badge status-${o.status.toLowerCase()}">
-    ${o.status}
-  </span>
-</td>
-
+      <td>${o.status}</td>
     `;
   });
 }
 
-/* =========================
-   ASSIGN DESIGNER
-========================= */
 async function assignDesigner(orderId, designer) {
   if (!designer) return;
 
@@ -364,65 +299,169 @@ async function assignDesigner(orderId, designer) {
   });
 
   loadOrders();
+  loadOrderKPI();
+}
+
+/* =========================
+   KPI FUNCTIONS
+========================= */
+async function loadDashboardKPI() {
+  const res = await fetch("/api/admin/live-dashboard");
+  const data = await res.json();
+
+  document.getElementById("kpiTotal").innerText = data.kpi?.totalOrders || 0;
+  document.getElementById("kpiDesign").innerText = data.kpi?.created || 0;
+  document.getElementById("kpiProduction").innerText = data.kpi?.production || 0;
+  document.getElementById("kpiQC").innerText = data.kpi?.hold || 0;
+  document.getElementById("kpiDelivery").innerText = data.kpi?.completed || 0;
+}
+
+async function loadCustomerKPI() {
+  const [cRes, oRes] = await Promise.all([
+    fetch("/api/customers/list"),
+    fetch("/api/orders/list")
+  ]);
+
+  const customers = await cRes.json();
+  const orders = await oRes.json();
+
+  document.getElementById("custTotal").innerText = customers.length;
+  document.getElementById("custActive").innerText =
+    customers.filter(c => c.status === "Active").length;
+  document.getElementById("custInactive").innerText =
+    customers.filter(c => c.status !== "Active").length;
+  document.getElementById("custWithOrders").innerText =
+    new Set(orders.map(o => o.customerName)).size;
+  document.getElementById("custRepeat").innerText =
+    orders.length -
+    new Set(orders.map(o => o.customerName)).size;
+}
+
+async function loadEnquiryKPI() {
+  const res = await fetch("/api/enquiries/list");
+  const e = await res.json();
+
+  document.getElementById("enqTotal").innerText = e.length;
+  document.getElementById("enqNew").innerText =
+    e.filter(x => x.status === "NEW").length;
+  document.getElementById("enqConverted").innerText =
+    e.filter(x => x.status === "CONVERTED").length;
+  document.getElementById("enqClosed").innerText =
+    e.filter(x => x.status === "LOST").length;
+}
+
+async function loadOrderKPI() {
+  const res = await fetch("/api/orders/list");
+  const o = await res.json();
+
+  document.getElementById("ordTotal").innerText = o.length;
+  document.getElementById("ordCreated").innerText =
+    o.filter(x => x.status === "CREATED").length;
+  document.getElementById("ordAssigned").innerText =
+    o.filter(x => x.status === "ASSIGNED").length;
+  document.getElementById("ordLocked").innerText =
+    o.filter(x => x.status === "LOCKED").length;
+  document.getElementById("ordCompleted").innerText =
+    o.filter(x => x.status === "COMPLETED").length;
+}
+
+async function loadDashboardCharts() {
+  const res = await fetch("/api/admin/live-dashboard");
+  const data = await res.json();
+
+  const design = data.kpi?.created || 0;
+  const production = data.kpi?.production || 0;
+  const hold = data.kpi?.hold || 0;
+  const completed = data.kpi?.completed || 0;
+
+  /* ================= PIE CHART ================= */
+  const pieCtx = document.getElementById("statusPie");
+  if (pieCtx) {
+    if (!statusPieChart) {
+      statusPieChart = new Chart(pieCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["Design", "Production", "Hold", "Completed"],
+          datasets: [{
+            data: [design, production, hold, completed],
+            backgroundColor: ["#f59e0b", "#16a34a", "#dc2626", "#6366f1"]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } }
+        }
+      });
+    } else {
+      statusPieChart.data.datasets[0].data =
+        [design, production, hold, completed];
+      statusPieChart.update();
+    }
+  }
+
+  /* ================= BAR CHART ================= */
+  const barCtx = document.getElementById("machineBar");
+  if (barCtx) {
+    if (!machineBarChart) {
+      machineBarChart = new Chart(barCtx, {
+        type: "bar",
+        data: {
+          labels: ["VMC-1", "VMC-2", "CNC-1", "LATHE"],
+          datasets: [{
+            label: "Jobs",
+            data: [production, production, design, completed],
+            backgroundColor: "#2563eb"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    } else {
+      machineBarChart.data.datasets[0].data =
+        [production, production, design, completed];
+      machineBarChart.update();
+    }
+  }
 }
 
 /* =========================
    INIT
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
-  showPage("dashboard");   // default landing
+  showPage("dashboard");
 
+  // INITIAL LOADS
+  loadDashboardKPI();
+  loadDashboardCharts();
+  loadCustomerKPI();
+  loadEnquiryKPI();
+  loadOrderKPI();
+
+  // AUTO LIVE REFRESH
+  setInterval(() => {
+    loadDashboardKPI();
+    loadDashboardCharts();
+    loadCustomerKPI();
+    loadEnquiryKPI();
+    loadOrderKPI();
+  }, 8000);
 });
 
-/* =====================================================
-   ADMIN – LIVE DASHBOARD
-===================================================== */
-async function loadAdminLiveDashboard() {
-  const res = await fetch("/api/admin/live-dashboard");
-  const data = await res.json();
 
-  // KPI
-  document.getElementById("kpiTotal").innerText = data.kpi.total;
-  document.getElementById("kpiDesign").innerText = data.kpi.design;
-  document.getElementById("kpiProduction").innerText = data.kpi.production;
-  document.getElementById("kpiHold").innerText = data.kpi.hold;
-  document.getElementById("kpiCompleted").innerText = data.kpi.completed;
+// =========================
+// TOGGLE ENQUIRY FORM
+// =========================
+function toggleEnquiryForm() {
+  const form = document.getElementById("enquiryForm");
+  if (!form) return;
 
-  // TABLE
-  const tbody = document.getElementById("adminLiveTable");
-  tbody.innerHTML = "";
-
-  data.jobs.forEach(j => {
-    const row = tbody.insertRow();
-    row.innerHTML = `
-      <td>${j.jobId}</td>
-      <td>${j.customer}</td>
-      <td>${j.part}</td>
-      <td>${j.designer}</td>
-      <td><span class="status ${j.status}">${j.status}</span></td>
-      <td>${j.updatedAt || "-"}</td>
-    `;
-  });
+  if (form.style.display === "none" || form.style.display === "") {
+    form.style.display = "block";
+  } else {
+    form.style.display = "none";
+  }
 }
-
-// AUTO REFRESH (every 8 sec)
-setInterval(loadAdminLiveDashboard, 8000);
-
-// FIRST LOAD
-document.addEventListener("DOMContentLoaded", loadAdminLiveDashboard);
-
-async function loadOperatorPerformance() {
-  const op = document.getElementById("opName").value;
-  const month = document.getElementById("opMonth").value;
-
-  const res = await fetch(
-    `/api/operator/performance?operator=${op}&month=${month}`
-  );
-  const d = await res.json();
-
-  document.getElementById("opJobs").innerText = d.jobs;
-  document.getElementById("opWork").innerText = d.workHours + " hrs";
-  document.getElementById("opHold").innerText = d.holdHours + " hrs";
-  document.getElementById("opEff").innerText = d.efficiency + "%";
-}
-
