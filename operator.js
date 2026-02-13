@@ -30,7 +30,7 @@ let elapsedSeconds = 0;
 async function loadJob() {
   if (!jobIdFromQR) return;
 
-  const res = await fetch(`/api/jobs/details/${jobIdFromQR}`);
+   const res = await fetch(`https://https://uniquecrm.netlify.app/operator.html/api/jobs/details/${jobIdFromQR}`)
   const job = await res.json();
 
   if (!job.success) {
@@ -215,3 +215,4 @@ async function loadDesignPreview(jobId) {
 
   document.getElementById("designPreviewCard").style.display = "block";
 }
+
