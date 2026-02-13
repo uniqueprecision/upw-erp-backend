@@ -1,6 +1,12 @@
-const table = document.getElementById("designerOrders");
+/* =========================
+   UPW ERP – DESIGNER FINAL
+========================= */
 
-let activeJobId = "";   // 🔑 single source of truth
+// 🔒 Single source of truth
+let activeJobId = "";
+
+// DOM
+const table = document.getElementById("designerOrders");
 
 /* =========================
    PAGE SWITCH
@@ -33,7 +39,7 @@ async function loadDesignerDashboard() {
         <td>${o.orderId}</td>
         <td>${o.customerName}</td>
         <td>${o.requirement}</td>
-        <td>ASSIGNED</td>
+        <td>${o.status}</td>
         <td>
           <button onclick="startDesign('${o.orderId}')">
             Start Design
@@ -69,9 +75,11 @@ async function startDesign(orderId) {
   wsDesignNo.value = "DES-" + Date.now();
   wsDesignDate.valueAsDate = new Date();
 
-  activeJobId = "";  // reset
-  qrCanvas.getContext("2d").clearRect(0,0,300,300);
+  // reset
+  activeJobId = "";
+  qrCanvas.getContext("2d").clearRect(0, 0, 300, 300);
   qrText.innerText = "";
+  btnComplete.disabled = true;
 
   showDesignerPage("design");
 }
@@ -80,71 +88,128 @@ async function startDesign(orderId) {
    GENERATE QR
 ========================= */
 function generateQR() {
+
+  /* ===============================
+     STRICT VALIDATION
+  =============================== */
+
+  if (!wsOrderId.value) {
+    alert("Order not loaded");
+    return;
+  }
+
+  if (!wsDesignerName.value.trim()) {
+    alert("Designer Name required");
+    return;
+  }
+
+  if (!wsDesignType.value) {
+    alert("Select Design Type (New / Rework)");
+    return;
+  }
+
+  if (!wsMaterial.value.trim()) {
+    alert("Material Used is required");
+    return;
+  }
+
+  const machines = document.querySelectorAll(".machineChk:checked");
+  if (machines.length === 0) {
+    alert("Select at least one Machine");
+    return;
+  }
+
+  if (!wsOperatorRemark.value.trim()) {
+    alert("Operator Instructions required");
+    return;
+  }
+
+  /* ===============================
+     QR LOCK
+  =============================== */
   if (activeJobId) {
     alert("QR already generated");
     return;
   }
 
-  const orderId = wsOrderId.value;
-  if (!orderId) return alert("Order missing");
-
+  /* ===============================
+     GENERATE QR
+  =============================== */
   activeJobId = "JOB-" + Date.now();
 
- new QRious({
-  element: document.getElementById("qrCanvas"),
-  size: 220,
-  value: `https://upw-erp-backend.onrender.com/operator.html?jobId=${activeJobId}`
-});
+  new QRious({
+    element: qrCanvas,
+    size: 220,
+    value: activeJobId
+  });
 
   qrText.innerText = "Job ID: " + activeJobId;
+
+  // enable submit ONLY now
+  btnComplete.disabled = false;
 }
+
 
 /* =========================
    COMPLETE DESIGN
 ========================= */
 async function completeDesign() {
+
   if (!activeJobId) {
     alert("Generate QR first");
     return;
   }
 
-  const designer = wsDesignerName.value.trim();
-  if (!designer) {
+  const designerName = wsDesignerName.value.trim();
+  if (!designerName) {
     alert("Designer name required");
     return;
   }
 
+  const machines = [...document.querySelectorAll(".machineChk:checked")]
+    .map(cb => cb.value)
+    .join(", ");
+
+  const payload = {
+    jobId: activeJobId,
+    orderId: wsOrderId.value,
+    customer: wsCustomer.value,
+    requirement: wsRequirement.value,
+    designer: designerName,
+    designType: document.getElementById("wsDesignType").value,
+    material: document.getElementById("wsMaterial").value,
+    machines: machines,
+    operatorNote: document.getElementById("wsOperatorRemark").value
+  };
+
+  console.log("SENDING JOB:", payload);
+
   const res = await fetch("/api/jobs/create", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jobId: activeJobId,
-      orderId: wsOrderId.value,
-      customer: wsCustomer.value,
-      requirement: wsRequirement.value,
-      designNo: wsDesignNo.value,
-      designer
-    })
+    body: JSON.stringify(payload)
   });
 
-  const r = await res.json();
+  const result = await res.json();
 
-  if (!r.success) {
+  if (!result.success) {
     alert("Job creation failed");
     return;
   }
 
-  alert("✅ Design completed & job sent to production");
+  alert("✅ Job Created");
 
+  activeJobId = "";
+  showDesignerPage("dashboard");
   loadDesignerDashboard();
-  showDesignerPage("production");
 }
+
 
 /* =========================
    INIT
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
+  btnComplete.disabled = true;
   showDesignerPage("dashboard");
   loadDesignerDashboard();
 });
-
