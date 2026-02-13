@@ -1,3 +1,11 @@
+window.addEventListener("beforeunload", () => {
+  if (elapsedSeconds > 0) {
+    localStorage.setItem("jobTimer_" + jobId.value, elapsedSeconds);
+  }
+});
+
+
+
 /* =========================
    LOAD JOB FROM QR
 ========================= */
@@ -31,15 +39,47 @@ async function loadJob() {
   }
 
   jobId.value = job.data.jobId;
-  orderId.value = job.data.orderId;
-  customer.value = job.data.customer;
-  requirement.value = job.data.requirement;
+orderId.value = job.data.orderId;
+customer.value = job.data.customer;
+requirement.value = job.data.requirement;
 
-  // ✅ DESIGN PREVIEW
-  loadDesignPreview(job.data.jobId);
+// ✅ MACHINE FILTERING
+populateMachines(job.data.machines || []);
+
+// ✅ DESIGN PREVIEW
+loadDesignPreview(job.data.jobId);
+
 }
 
 loadJob();
+function populateMachines(machineList) {
+  const machineSelect = document.getElementById("machineName");
+  machineSelect.innerHTML = `<option value="">Select Machine</option>`;
+
+  if (machineList.length === 0) {
+    const opt = document.createElement("option");
+    opt.disabled = true;
+    opt.textContent = "No machine assigned by designer";
+    machineSelect.appendChild(opt);
+    return;
+  }
+
+  machineList.forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    machineSelect.appendChild(opt);
+  });
+}
+
+
+// 🔁 Restore timer if exists
+const saved = localStorage.getItem("jobTimer_" + job.data.jobId);
+if (saved) {
+  startTimer(parseInt(saved));
+  document.getElementById("activeActions").style.display = "block";
+}
+
 
 /* =========================
    START JOB
@@ -134,22 +174,29 @@ async function holdJob() {
 async function completeJob() {
   if (!confirm("Complete this job?")) return;
 
-  // 🛑 STOP TIMER
   stopTimer();
 
-  await fetch("/api/production/complete", {
+  const res = await fetch("/api/production/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       jobId: jobId.value,
+      status: "QC_PENDING",
       totalSeconds: elapsedSeconds
     })
   });
 
-  alert("✅ Job Completed");
+  const result = await res.json();
 
-  document.getElementById("activeActions").style.display = "none";
+  if (result.success) {
+    alert("✅ Job sent to QC");
+    document.getElementById("activeActions").style.display = "none";
+  } else {
+    alert("❌ Unable to complete job");
+  }
 }
+  
+
 
 /* ===============================
    DESIGN PREVIEW (READ ONLY)
